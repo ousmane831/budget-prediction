@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <title>Prédiction Budget Commune</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            background: #f0f2f5;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 40px;
+        }
+
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+
+        .chart-container {
+            flex: 1;
+            min-width: 400px;
+        }
+
+        .form-container {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            font-size: 1em;
+        }
+
+        button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #2e86de;
+            color: white;
+            font-size: 1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #1e6fbd;
+        }
+
+        #result, #error {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 1.1em;
+        }
+
+        #result {
+            background-color: #eafaf1;
+            color: #27ae60;
+            border: 1px solid #b2f2bb;
+        }
+
+        #error {
+            background-color: #fdecea;
+            color: #e74c3c;
+            border: 1px solid #f5c6cb;
+        }
+
+        canvas {
+            background: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Prédiction des recettes et dépenses</h1>
+    <div class="content">
+        <div class="chart-container">
+            <canvas id="budgetChart" width="400" height="300"></canvas>
+        </div>
+
+        <div class="form-container">
+            <form id="prediction-form">
+                <label for="commune">Choisir une commune :</label>
+                <select id="commune" name="commune" required>
+                    <option value="" disabled selected>-- Sélectionnez une commune --</option>
+                    <option value="Paris">Paris</option>
+                    <option value="Marseille">Marseille</option>
+                    <option value="Lyon">Lyon</option>
+                    <option value="Nantes">Nantes</option>
+                    <option value="Nice">Nice</option>
+                </select>
+
+                <label for="annee">Année future :</label>
+                <input type="number" id="annee" name="annee" min="2024" max="2050" placeholder="Ex : 2026" required />
+
+                <button type="submit">Prédire</button>
+            </form>
+
+            <div id="result"></div>
+            <div id="error"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let chart = null;
+
+    document.getElementById('prediction-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        document.getElementById('result').textContent = '';
+        document.getElementById('error').textContent = '';
+
+        const commune = document.getElementById('commune').value;
+        const annee = document.getElementById('annee').value;
+
+        if (!commune || !annee || annee < 2024 || annee > 2050) {
+            document.getElementById('error').textContent = 'Veuillez remplir tous les champs correctement.';
+            return;
+        }
+
+        try {
+            const response = await fetch('/predict/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ commune: commune, annee: parseInt(annee) })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                document.getElementById('error').textContent = data.error || 'Erreur lors de la prédiction.';
+                return;
+            }
+
+            document.getElementById('result').innerHTML = `
+                ✅ <strong>${commune}</strong> en <strong>${annee}</strong> :
+                <br><br>
+                🔹 Recettes : <strong>${data.recettes} M€</strong><br>
+                🔻 Dépenses : <strong>${data.depenses} M€</strong>
+            `;
+
+            renderChart(commune, annee, data.recettes, data.depenses);
+
+        } catch (err) {
+            document.getElementById('error').textContent = 'Erreur de connexion au serveur.';
+            console.error(err);
+        }
+    });
+
+    function renderChart(commune, anneePrediction, recettesPrediction, depensesPrediction) {
+        const anneesPassees = [2019, 2020, 2021, 2022, 2023];
+        const recettesPassees = [48.2, 50.3, 53.1, 55.6, 57.4];
+        const depensesPassees = [47.5, 49.2, 50.8, 52.3, 54.1];
+
+        const labels = [...anneesPassees, parseInt(anneePrediction)];
+        const recettes = [...recettesPassees, recettesPrediction];
+        const depenses = [...depensesPassees, depensesPrediction];
+
+        const ctx = document.getElementById('budgetChart').getContext('2d');
+        if (chart) chart.destroy();
+
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Recettes (M€)',
+                        data: recettes,
+                        borderColor: '#27ae60',
+                        backgroundColor: 'rgba(39, 174, 96, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Dépenses (M€)',
+                        data: depenses,
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `Budget de la commune de ${commune}`,
+                        font: {
+                            size: 18
+                        }
+                    },
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: "Montants (en millions €)"
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: "Année"
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
