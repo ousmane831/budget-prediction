@@ -1,4 +1,4 @@
-# 🔍 Prédiction Budgétaire des Communes
+#  Prédiction Budgétaire des Communes
 
 Ce projet web permet aux utilisateurs de :
 - Sélectionner une commune et une année
@@ -7,7 +7,7 @@ Ce projet web permet aux utilisateurs de :
 
 ---
 
-## ⚙️ Fonctionnalités
+##  Fonctionnalités
 
 - ✅ Formulaire de sélection (commune + année)
 - 🔁 Prédiction en temps réel (via backend)
@@ -16,15 +16,15 @@ Ce projet web permet aux utilisateurs de :
 
 ---
 
-## 🧪 Technologies utilisées
+##  Technologies utilisées
 
 - **Frontend :** HTML, CSS, JavaScript  
 - **Librairie graphique :** [Chart.js](https://www.chartjs.org/)  
-- **Backend (exemple) :** Django / Flask / Node.js
+- **Backend :** Django pour l'api
 
 ---
 
-## 🚀 Lancer le projet en local
+##  Lancer le projet en local
 
 ```bash
 # Cloner le dépôt
