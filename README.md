@@ -9,10 +9,10 @@ Ce projet web permet aux utilisateurs de :
 
 ##  Fonctionnalités
 
-- ✅ Formulaire de sélection (commune + année)
-- 🔁 Prédiction en temps réel (via backend)
-- 📊 Affichage graphique des résultats
-- 💡 Interface moderne, fluide et responsive
+-  Formulaire de sélection (commune + année)
+-  Prédiction en temps réel (via backend)
+-  Affichage graphique des résultats
+-  Interface moderne, fluide et responsive
 
 ---
 
